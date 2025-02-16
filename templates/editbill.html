@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Saw Mill">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Bill</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background-color: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            color: #202124;
+            flex-grow: 1;
+        }
+
+        .form-container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #202124;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .save-button {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        .cancel-button {
+            background-color: #e8eaed;
+            color: #5f6368;
+        }
+
+        .alert {
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .form-input {
+                font-size: 14px;
+            }
+            
+            .button {
+                font-size: 14px;
+            }
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .form-input {
+            background-color: #2d2d2d;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .material-icons,
+        body.dark-mode .header-title {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .form-input:focus {
+            border-color: #8ab4f8;
+        }
+
+        body.dark-mode .cancel-button {
+            background-color: #3c4043;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .alert {
+            background-color: #1a73e8;
+            color: #e8eaed;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="back-button" onclick="window.location.href='/bills'">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">Edit Bill</h1>
+    </header>
+
+    <div class="form-container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" class="form-input" name="customer_id" placeholder="Customer ID" value="{{ bill.customer_id }}" required>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" name="customer_name" placeholder="Customer Name" value="{{ bill.customer_name }}" required>
+            </div>
+            <div class="form-group">
+                <input type="tel" class="form-input" name="phone" placeholder="Phone Number (Optional)" value="{{ bill.phone }}">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" name="tree_id" placeholder="Tree ID" value="{{ bill.tree_id }}" required>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" name="tree_measurement" placeholder="Tree Measurement" value="{{ bill.tree_measurement }}" required>
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-input" name="tree_quantity" placeholder="Tree Quantity" value="{{ bill.tree_quantity }}">
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-input" name="total_amount" placeholder="Total Amount" value="{{ bill.total_amount }}" required>
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-input" name="amount_paid" placeholder="Amount Paid" value="{{ bill.amount_paid }}" required>
+            </div>
+            <div class="button-container">
+                <button type="button" class="button cancel-button" onclick="window.location.href='/bills'">Cancel</button>
+                <button type="submit" class="button save-button">Save Changes</button>
+            </div>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+</body>
+</html> 

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .header-title {
+            font-size: 24px;
+            color: #202124;
+        }
+
+        .chart-container {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .timeframe-buttons {
+            margin-bottom: 20px;
+        }
+
+        .timeframe-buttons button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #e8eaed;
+            color: #202124;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .timeframe-buttons button.active {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 20px;
+            }
+
+            .timeframe-buttons button {
+                padding: 8px 16px;
+                margin-right: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="back-button" onclick="window.location.href='/'">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">Analytics</h1>
+    </header>
+
+    <div class="timeframe-buttons">
+        <button id="dayButton" class="active">Daily</button>
+        <button id="weekButton">Weekly</button>
+        <button id="monthButton">Monthly</button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="analyticsChart"></canvas>
+    </div>
+
+    <!-- Include Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const dayButton = document.getElementById('dayButton');
+        const weekButton = document.getElementById('weekButton');
+        const monthButton = document.getElementById('monthButton');
+        const analyticsChartCtx = document.getElementById('analyticsChart').getContext('2d');
+
+        let analyticsData = {
+            daily: {},
+            weekly: {},
+            monthly: {}
+        };
+
+        let currentView = 'daily';
+        let chart;
+
+        async function fetchAnalyticsData() {
+            try {
+                const response = await fetch('/api/analytics');
+                const data = await response.json();
+                if (response.ok) {
+                    analyticsData = data;
+                    updateChart(currentView);
+                } else {
+                    console.error('Error fetching analytics data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching analytics data:', error);
+            }
+        }
+
+        function generateChart(labels, data, label, backgroundColor) {
+            return new Chart(analyticsChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: backgroundColor
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.parsed.y;
+                                    return '₹' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(view) {
+            if (chart) {
+                chart.destroy();
+            }
+
+            let labels = [];
+            let data = [];
+            let label = '';
+            let backgroundColor = '#1a73e8';
+
+            if (view === 'daily') {
+                labels = Object.keys(analyticsData.daily);
+                data = Object.values(analyticsData.daily);
+                label = 'Daily Sales';
+            } else if (view === 'weekly') {
+                labels = Object.keys(analyticsData.weekly);
+                data = Object.values(analyticsData.weekly);
+                label = 'Weekly Sales';
+            } else if (view === 'monthly') {
+                labels = Object.keys(analyticsData.monthly);
+                data = Object.values(analyticsData.monthly);
+                label = 'Monthly Sales';
+            }
+
+            chart = generateChart(labels, data, label, backgroundColor);
+        }
+
+        // Initial fetch and chart update
+        fetchAnalyticsData();
+
+        // Button event listeners
+        dayButton.addEventListener('click', () => {
+            currentView = 'daily';
+            updateChart(currentView);
+            setActiveButton('day');
+        });
+
+        weekButton.addEventListener('click', () => {
+            currentView = 'weekly';
+            updateChart(currentView);
+            setActiveButton('week');
+        });
+
+        monthButton.addEventListener('click', () => {
+            currentView = 'monthly';
+            updateChart(currentView);
+            setActiveButton('month');
+        });
+
+        function setActiveButton(view) {
+            dayButton.classList.remove('active');
+            weekButton.classList.remove('active');
+            monthButton.classList.remove('active');
+
+            if (view === 'day') {
+                dayButton.classList.add('active');
+            } else if (view === 'week') {
+                weekButton.classList.add('active');
+            } else if (view === 'month') {
+                monthButton.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

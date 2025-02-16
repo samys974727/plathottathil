@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Saw Mill">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Management</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background-color: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            color: #202124;
+            flex-grow: 1;
+        }
+
+        .add-button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-container {
+            padding: 16px;
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-button {
+            padding: 6px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 16px;
+            background: none;
+            cursor: pointer;
+        }
+
+        .filter-button.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            border-color: #1a73e8;
+        }
+
+        .trees-container {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .tree-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .tree-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .tree-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #e8f0fe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .tree-details {
+            flex-grow: 1;
+        }
+
+        .tree-id {
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .tree-size {
+            color: #5f6368;
+            font-size: 14px;
+        }
+
+        .tree-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-available {
+            background-color: #e6f4ea;
+            color: #137333;
+        }
+
+        .status-sold {
+            background-color: #fce8e6;
+            color: #c5221f;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #202124;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+        }
+
+        .submit-button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .trees-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .tree-card,
+        body.dark-mode .search-box {
+            background-color: #2d2d2d;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .material-icons,
+        body.dark-mode .tree-details,
+        body.dark-mode .tree-description {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .tree-id {
+            color: #8ab4f8;
+        }
+
+        body.dark-mode .header-title {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .tree-size,
+        body.dark-mode .tree-status {
+            color: #9aa0a6;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="back-button" onclick="window.location.href='/'">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">Tree Management</h1>
+        <button class="add-button" onclick="openModal()">
+            <span class="material-icons">add</span>
+            Add Tree
+        </button>
+    </header>
+
+    <div class="search-container">
+        <input type="text" class="search-box" id="searchInput" placeholder="Search by Tree ID or Size">
+        <div class="filter-container">
+            <button class="filter-button active" data-filter="all">All</button>
+            <button class="filter-button" data-filter="available">Available</button>
+            <button class="filter-button" data-filter="sold">Sold</button>
+        </div>
+    </div>
+
+    <div class="trees-container">
+        {% for tree in trees %}
+        <div class="tree-card" data-status="{{ tree.status }}">
+            <div class="tree-header">
+                <div class="tree-icon">
+                    <span class="material-icons">park</span>
+                </div>
+                <div class="tree-details">
+                    <div class="tree-id">Tree ID: {{ tree.tree_id }}</div>
+                    <div class="tree-size">Size: {{ tree.size }}</div>
+                </div>
+                <span class="tree-status status-{{ tree.status }}">
+                    {{ tree.status|title }}
+                </span>
+            </div>
+            <div class="tree-description">
+                {% if tree.status == 'sold' %}
+                    <div>Sold to: {{ tree.customer_name }}</div>
+                    <div>Bill ID: {{ tree.bill_id }}</div>
+                    <div>Amount: ₹{{ tree.amount }}</div>
+                    <div>Date: {{ tree.bill_date.strftime('%d/%m/%Y') if tree.bill_date else 'N/A' }}</div>
+                {% else %}
+                    <div>{{ tree.description if tree.description else 'No description available' }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add Tree Modal -->
+    <div id="addTreeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Tree</h2>
+                <button class="close-button" onclick="closeModal()">&times;</button>
+            </div>
+            <form method="POST" action="{{ url_for('add_tree') }}">
+                <div class="form-group">
+                    <label class="form-label">Tree ID</label>
+                    <input type="text" class="form-input" name="tree_id" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Size</label>
+                    <input type="text" class="form-input" name="size" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" name="description" rows="3"></textarea>
+                </div>
+                <button type="submit" class="submit-button">Add Tree</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal functions
+        function openModal() {
+            document.getElementById('addTreeModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('addTreeModal').style.display = 'none';
+        }
+
+        // Search and filter functionality
+        const searchInput = document.getElementById('searchInput');
+        const treeCards = document.querySelectorAll('.tree-card');
+        const filterButtons = document.querySelectorAll('.filter-button');
+        let currentFilter = 'all';
+
+        searchInput.addEventListener('input', filterTrees);
+        filterButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                filterTrees();
+            });
+        });
+
+        function filterTrees() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            treeCards.forEach(card => {
+                // Get all searchable content including customer name, bill ID, etc.
+                const treeId = card.querySelector('.tree-id').textContent.toLowerCase();
+                const treeSize = card.querySelector('.tree-size').textContent.toLowerCase();
+                const description = card.querySelector('.tree-description').textContent.toLowerCase();
+                const status = card.dataset.status;
+                
+                // Check if any field matches the search term
+                const matchesSearch = 
+                    treeId.includes(searchTerm) || 
+                    treeSize.includes(searchTerm) || 
+                    description.includes(searchTerm);
+                
+                // Check if status matches the current filter
+                const matchesFilter = currentFilter === 'all' || status === currentFilter;
+                
+                // Show/hide card based on both search and filter criteria
+                card.style.display = matchesSearch && matchesFilter ? 'block' : 'none';
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('addTreeModal')) {
+                closeModal();
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+</body>
+</html> 

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Saw Mill">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers List</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background-color: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            color: #202124;
+            flex-grow: 1;
+        }
+
+        .search-container {
+            padding: 16px;
+            position: sticky;
+            top: 64px;
+            background-color: #f8f9fa;
+            z-index: 999;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 16px 12px 48px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            font-size: 16px;
+            background: white url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="%235F6368"/></svg>') no-repeat 16px center;
+        }
+
+        .customers-container {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .customer-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .customer-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .customer-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e8f0fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .customer-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .customer-details {
+            color: #5f6368;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .customer-stats {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #dadce0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-weight: 500;
+            color: #1a73e8;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        @media (max-width: 480px) {
+            .customers-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .bills-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+
+        .bills-popup-content {
+            position: relative;
+            background-color: white;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .popup-title {
+            font-size: 20px;
+            color: #202124;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .customer-info {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+
+        .customer-avatar.large {
+            width: 60px;
+            height: 60px;
+        }
+
+        .customer-details-popup {
+            margin-left: 16px;
+        }
+
+        .customer-name-popup {
+            font-size: 18px;
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .customer-id-popup, .customer-phone-popup {
+            color: #5f6368;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .bills-list {
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .bill-item {
+            background-color: white;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .bill-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .bill-id {
+            font-weight: 500;
+            color: #1a73e8;
+        }
+
+        .bill-date {
+            color: #5f6368;
+        }
+
+        .bill-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .bill-amount {
+            color: #202124;
+            font-weight: 500;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .customer-card,
+        body.dark-mode .bills-popup-content,
+        body.dark-mode .search-box,
+        body.dark-mode .bill-item {
+            background-color: #2d2d2d;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .material-icons,
+        body.dark-mode .customer-details,
+        body.dark-mode .bill-details {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .search-box {
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .customer-name,
+        body.dark-mode .bill-amount {
+            color: #8ab4f8;
+        }
+
+        body.dark-mode .header-title,
+        body.dark-mode .customer-name-popup {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .customer-id,
+        body.dark-mode .customer-phone,
+        body.dark-mode .bill-date {
+            color: #9aa0a6;
+        }
+
+        body.dark-mode .customer-info {
+            background-color: #202124;
+        }
+
+        body.dark-mode .customer-avatar {
+            background-color: #3c4043;
+        }
+
+        body.dark-mode .stat-value {
+            color: #8ab4f8;
+        }
+
+        body.dark-mode .stat-label {
+            color: #9aa0a6;
+        }
+
+        body.dark-mode .customer-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .bill-item {
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .popup-title {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .close-button {
+            color: #e8eaed;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="back-button" onclick="window.location.href='/'">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">Customers</h1>
+    </header>
+
+    <div class="search-container">
+        <input type="text" class="search-box" placeholder="Search customers" id="searchInput">
+    </div>
+
+    <div class="customers-container">
+        {% for customer in customers %}
+        <div class="customer-card">
+            <div class="customer-header">
+                <div class="customer-avatar">
+                    <span class="material-icons">person</span>
+                </div>
+                <span class="customer-name">{{ customer.customer_name }}</span>
+            </div>
+            <div class="customer-details">
+                <div>ID: {{ customer.customer_id }}</div>
+                <div>Phone: {{ customer.phone if customer.phone else 'N/A' }}</div>
+            </div>
+            <div class="customer-stats">
+                <div class="stat">
+                    <div class="stat-value">{{ customer.total_bills }}</div>
+                    <div class="stat-label">Bills</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">₹{{ customer.total_balance }}</div>
+                    <div class="stat-label">Balance</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="billsPopup" class="bills-popup">
+        <div class="bills-popup-content">
+            <div class="popup-header">
+                <h2 class="popup-title">Customer Bills</h2>
+                <button class="close-button" onclick="closeBillsPopup()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="customer-info">
+                <div class="customer-avatar large">
+                    <span class="material-icons">person</span>
+                </div>
+                <div class="customer-details-popup">
+                    <div class="customer-name-popup"></div>
+                    <div class="customer-id-popup"></div>
+                    <div class="customer-phone-popup"></div>
+                </div>
+            </div>
+            <div class="bills-list" id="billsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const customerCards = document.querySelectorAll('.customer-card');
+        const billsPopup = document.getElementById('billsPopup');
+
+        customerCards.forEach(card => {
+            card.addEventListener('click', async function() {
+                const customerId = this.querySelector('.customer-details div:first-child').textContent.split(': ')[1];
+                const customerName = this.querySelector('.customer-name').textContent;
+                const customerPhone = this.querySelector('.customer-details div:last-child').textContent.split(': ')[1];
+                
+                document.querySelector('.customer-name-popup').textContent = customerName;
+                document.querySelector('.customer-id-popup').textContent = `ID: ${customerId}`;
+                document.querySelector('.customer-phone-popup').textContent = `Phone: ${customerPhone}`;
+                
+                try {
+                    const response = await fetch(`/get_customer_bills/${customerId}`);
+                    const bills = await response.json();
+                    
+                    const billsList = document.getElementById('billsList');
+                    billsList.innerHTML = bills.map(bill => `
+                        <div class="bill-item">
+                            <div class="bill-header">
+                                <span class="bill-id">Bill ID: ${bill.bill_id}</span>
+                                <span class="bill-date">${new Date(bill.timestamp).toLocaleDateString()}</span>
+                            </div>
+                            <div class="bill-details">
+                                <div>Tree ID: ${bill.tree_id}</div>
+                                <div>Size: ${bill.tree_measurement}</div>
+                                <div>Quantity: ${bill.tree_quantity}</div>
+                                <div class="bill-amount">Total: ₹${bill.total_amount}</div>
+                                <div class="bill-amount">Paid: ₹${bill.amount_paid}</div>
+                                <div class="bill-amount">Balance: ₹${bill.balance}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    billsPopup.style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Error fetching bills:', error);
+                }
+            });
+        });
+
+        function closeBillsPopup() {
+            billsPopup.style.display = 'none';
+        }
+
+        billsPopup.addEventListener('click', function(e) {
+            if (e.target === billsPopup) {
+                closeBillsPopup();
+            }
+        });
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            customerCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+</body>
+</html>

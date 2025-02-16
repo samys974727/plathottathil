@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Saw Mill">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Form</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background-color: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            color: #202124;
+            flex-grow: 1;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .header-icon {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .form-container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #202124;
+            background-color: white;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        .form-input::placeholder {
+            color: #5f6368;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .button {
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        .view-bills-button {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+            border: 1px solid #dadce0;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 12px;
+            }
+
+            .form-input {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            .button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        .alert {
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            text-align: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #5f6368;
+        }
+
+        .existing-customer-details {
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 4px;
+            margin: 16px 0;
+        }
+
+        .error-message {
+            color: #d93025;
+            margin-top: 16px;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .grid-button,
+        body.dark-mode .bill-card,
+        body.dark-mode .customer-card,
+        body.dark-mode .settings-popup-content,
+        body.dark-mode .search-box,
+        body.dark-mode .footer-banner {
+            background-color: #2d2d2d;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .material-icons,
+        body.dark-mode .button-text,
+        body.dark-mode .bill-details,
+        body.dark-mode .customer-details {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .search-box {
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .action-button {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .bill-amount,
+        body.dark-mode .customer-name {
+            color: #8ab4f8;
+        }
+
+        body.dark-mode .header-title,
+        body.dark-mode .popup-title {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .bill-date,
+        body.dark-mode .customer-id,
+        body.dark-mode .customer-phone {
+            color: #9aa0a6;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="back-button" onclick="window.location.href='/'">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">Billing Form</h1>
+    </header>
+
+    <div class="form-container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" class="form-input" name="customer_id" placeholder="Customer ID" required>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" name="customer_name" placeholder="Customer Name" required>
+            </div>
+            <div class="form-group">
+                <input type="tel" class="form-input" name="phone" placeholder="Phone Number (Optional)">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" name="tree_id" placeholder="Tree ID" required>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" name="tree_measurement" placeholder="Tree Measurement" required>
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-input" name="tree_quantity" placeholder="Tree Quantity (Optional)">
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-input" name="total_amount" placeholder="Total Amount" required>
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-input" name="amount_paid" placeholder="Amount Paid" required>
+            </div>
+            <div class="button-container">
+                <button type="submit" class="button submit-button">Submit</button>
+                <button type="button" class="button view-bills-button" onclick="window.location.href='/bills'">View Bills</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Add this modal HTML after your form -->
+    <div id="customerExistsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Customer ID Already Exists</h2>
+                <button class="close-button" onclick="closeCustomerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This Customer ID is already registered to:</p>
+                <div class="existing-customer-details">
+                    <p><strong>Name:</strong> <span id="existingCustomerName"></span></p>
+                    <p><strong>Phone:</strong> <span id="existingCustomerPhone"></span></p>
+                    <p><strong>ID:</strong> <span id="existingCustomerId"></span></p>
+                </div>
+                <p class="error-message">Please use a different Customer ID</p>
+            </div>
+            <div class="modal-footer">
+                <button class="button" onclick="closeCustomerModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update your form to handle the submission with JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    const formData = new FormData(this);
+                    const response = await fetch('/billing', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        // Success - redirect to home
+                        window.location.href = '/';
+                    } else if (result.status === 'error' && result.customer) {
+                        // Show customer exists modal
+                        document.getElementById('existingCustomerName').textContent = result.customer.name;
+                        document.getElementById('existingCustomerPhone').textContent = result.customer.phone || 'N/A';
+                        document.getElementById('existingCustomerId').textContent = result.customer.id;
+                        document.getElementById('customerExistsModal').style.display = 'block';
+                    } else {
+                        // Show general error
+                        alert(result.message || 'An error occurred');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while saving the bill');
+                }
+            });
+
+            function closeCustomerModal() {
+                document.getElementById('customerExistsModal').style.display = 'none';
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target == document.getElementById('customerExistsModal')) {
+                    closeCustomerModal();
+                }
+            }
+
+            // Make sure these are correctly selecting the input elements
+            const customerIdInput = document.querySelector('input[name="customer_id"]');
+            const customerNameInput = document.querySelector('input[name="customer_name"]');
+            const phoneInput = document.querySelector('input[name="phone"]');
+            
+            console.log('DOM Loaded - Found elements:', {
+                customerIdInput,
+                customerNameInput,
+                phoneInput
+            });
+            
+            customerIdInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                console.log('ID input changed:', value);
+                
+                if (value.length > 0) {  // Start search immediately for ID
+                    fetchCustomerDetails('id', value);
+                }
+            });
+            
+            customerNameInput.addEventListener('input', function(e) {
+                const value = e.target.value.trim();
+                console.log('Name input changed:', value);
+                
+                if (value.length >= 2) {
+                    fetchCustomerDetails('name', value);
+                }
+            });
+
+            // Function to fetch customer details
+            async function fetchCustomerDetails(searchBy, value) {
+                console.log(`Fetching customer details - searchBy: ${searchBy}, value: ${value}`);
+                try {
+                    const trimmedValue = value.trim();
+                    const url = `/get_customer?searchBy=${searchBy}&value=${encodeURIComponent(trimmedValue)}`;
+                    console.log(`Fetching URL: ${url}`);
+                    
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    
+                    if (data.status === 'success' && data.customer) {
+                        console.log('Found customer:', data.customer);
+                        if (searchBy === 'id') {
+                            // Only update name and phone if they're empty
+                            customerNameInput.value = data.customer.name;
+                            phoneInput.value = data.customer.phone || '';
+                        } else if (searchBy === 'name') {
+                            if (!customerIdInput.value) {
+                                console.log('Setting customer ID:', data.customer.id);
+                                customerIdInput.value = data.customer.id;
+                            }
+                            if (!phoneInput.value) {
+                                console.log('Setting phone:', data.customer.phone);
+                                phoneInput.value = data.customer.phone || '';
+                            }
+                        }
+                    } else {
+                        console.log('No customer found or invalid response');
+                    }
+                } catch (error) {
+                    console.error('Error fetching customer details:', error);
+                }
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+</body>
+</html>

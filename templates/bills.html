@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Saw Mill">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bills List</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background-color: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            color: #202124;
+            flex-grow: 1;
+        }
+
+        .search-container {
+            padding: 16px;
+            position: sticky;
+            top: 64px;
+            background-color: #f8f9fa;
+            z-index: 999;
+        }
+
+        .search-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box, .date-picker {
+            width: 100%;
+            padding: 12px 16px 12px 48px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        .search-box {
+            background: white url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="%235F6368"/></svg>') no-repeat 16px center;
+        }
+
+        .date-picker {
+            background: white url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="%235F6368"/></svg>') no-repeat 16px center;
+            cursor: pointer;
+        }
+
+        /* Hide default date picker icon in webkit browsers */
+        .date-picker::-webkit-calendar-picker-indicator {
+            background: transparent;
+            bottom: 0;
+            color: transparent;
+            cursor: pointer;
+            height: auto;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 16px;
+            border: none;
+            background-color: #e8eaed;
+            color: #5f6368;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .filter-tab.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .bills-container {
+            padding: 16px;
+        }
+
+        .bill-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .bill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .customer-name {
+            font-size: 18px;
+            color: #202124;
+            font-weight: 500;
+        }
+
+        .bill-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            color: #5f6368;
+        }
+
+        .bill-details {
+            color: #5f6368;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 480px) {
+            .search-box {
+                font-size: 14px;
+            }
+
+            .customer-name {
+                font-size: 16px;
+            }
+
+            .bill-details {
+                font-size: 13px;
+            }
+        }
+
+        .whatsapp-share {
+            background-color: #25D366 !important; /* WhatsApp green */
+            color: white !important;
+        }
+        
+        .whatsapp-share:hover {
+            background-color: #128C7E !important; /* Darker shade for hover */
+        }
+        
+        /* Make sure the material icons for WhatsApp are included */
+        .material-icons {
+            font-size: 20px;
+            vertical-align: middle;
+        }
+
+        .share-popup {
+            display: none;
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            overflow: hidden;
+            min-width: 150px;
+        }
+
+        .share-option {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .share-option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .share-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .share-option.whatsapp {
+            border-bottom: 1px solid #eee;
+        }
+
+        .share-option.whatsapp span {
+            color: #000;
+        }
+
+        .share-option.sms {
+            color: #000;
+        }
+
+        .share-option.sms .material-icons {
+            color: #2196F3;
+            font-size: 24px;
+        }
+
+        /* Close popup when clicking outside */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999;
+        }
+
+        /* Dark mode styles for share popup */
+        body.dark-mode .share-popup {
+            background-color: #2d2d2d;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .share-option {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .share-option:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        body.dark-mode .share-option.whatsapp {
+            border-bottom-color: #5f6368;
+        }
+
+        body.dark-mode .share-option.whatsapp span,
+        body.dark-mode .share-option.sms span {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .share-option.sms .material-icons {
+            color: #8ab4f8;
+        }
+
+        /* Dark mode styles for bill cards and other elements */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .bill-card,
+        body.dark-mode .search-box,
+        body.dark-mode .date-picker {
+            background-color: #2d2d2d;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .filter-tab {
+            background-color: #3c4043;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .filter-tab.active {
+            background-color: #8ab4f8;
+            color: #202124;
+        }
+
+        body.dark-mode .customer-name {
+            color: #8ab4f8;
+        }
+
+        body.dark-mode .bill-details {
+            color: #9aa0a6;
+        }
+
+        body.dark-mode .action-button {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header-title {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .search-container {
+            background-color: #202124;
+        }
+
+        body.dark-mode .bill-card {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .bill-card:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+        }
+
+        body.dark-mode .bill-amount {
+            color: #8ab4f8;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <button class="back-button" onclick="window.location.href='/'">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="header-title">Bills List</h1>
+    </header>
+
+    <div class="search-container">
+        <div class="search-input-container">
+            <input type="text" class="search-box" placeholder="Search by name" id="searchInput">
+            <input type="date" class="date-picker" id="dateInput" style="display: none;">
+        </div>
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-field="customer_name">Name</button>
+            <button class="filter-tab" data-field="customer_id">Customer ID</button>
+            <button class="filter-tab" data-field="tree_id">Tree ID</button>
+            <button class="filter-tab" data-field="date">Date</button>
+        </div>
+    </div>
+
+    <div class="bills-container">
+        {% for bill in bills %}
+        <div class="bill-card">
+            <div class="bill-header">
+                <span class="customer-name">{{ bill.customer_name }}</span>
+                <div class="bill-actions">
+                    <button class="action-button" onclick="window.location.href='/download_bill/{{ bill.bill_id }}'">
+                        <span class="material-icons">file_download</span>
+                    </button>
+                    <button class="action-button" onclick="window.location.href='/edit_bill/{{ bill.bill_id }}'">
+                        <span class="material-icons">edit</span>
+                    </button>
+                    <button class="action-button share-button" 
+                        onclick="showShareOptions(this, 
+                            '{{ bill.customer_name }}', 
+                            '{{ bill.total_amount }}', 
+                            '{{ bill.amount_paid }}', 
+                            '{{ bill.balance }}',
+                            '{{ bill.tree_id }}',
+                            '{{ bill.tree_quantity }}',
+                            '{{ bill.tree_measurement }}',
+                            '{{ bill.phone }}', 
+                            '{{ bill.bill_id }}')">
+                        <span class="material-icons">share</span>
+                    </button>
+                </div>
+            </div>
+            <div class="bill-details">
+                <div>Total Amount: ₹{{ bill.total_amount }}</div>
+                <div>Amount Paid: ₹{{ bill.amount_paid }}</div>
+                <div>Balance: ₹{{ bill.balance }}</div>
+                <div>Customer ID: {{ bill.customer_id }}</div>
+                <div>Tree ID: {{ bill.tree_id }}</div>
+                <div>Tree Quantity: {{ bill.tree_quantity }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Share Options Popup -->
+    <div class="share-popup" id="sharePopup">
+        <div class="share-option whatsapp" onclick="shareToWhatsApp()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="share-icon">
+            <span>WhatsApp</span>
+        </div>
+        <div class="share-option sms" onclick="shareToSMS()">
+            <span class="material-icons">sms</span>
+            <span>SMS</span>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const dateInput = document.getElementById('dateInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        let currentField = 'customer_name';
+
+        // Add click event listeners to filter tabs
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update current field
+                currentField = tab.dataset.field;
+                
+                // Toggle between search box and date picker
+                if (currentField === 'date') {
+                    searchInput.style.display = 'none';
+                    dateInput.style.display = 'block';
+                    dateInput.value = ''; // Reset date
+                } else {
+                    searchInput.style.display = 'block';
+                    dateInput.style.display = 'none';
+                    searchInput.placeholder = `Search by ${tab.textContent.toLowerCase()}`;
+                    searchInput.value = ''; // Reset search
+                }
+                
+                // Reapply search with new field
+                filterBills();
+            });
+        });
+
+        // Add input event listeners
+        searchInput.addEventListener('input', filterBills);
+        dateInput.addEventListener('input', filterBills);
+
+        function filterBills() {
+            const billCards = document.querySelectorAll('.bill-card');
+            let searchTerm = '';
+
+            if (currentField === 'date') {
+                searchTerm = dateInput.value;
+            } else {
+                searchTerm = searchInput.value.toLowerCase();
+            }
+
+            billCards.forEach(card => {
+                let searchValue = '';
+                
+                // Get the appropriate value based on the current field
+                switch(currentField) {
+                    case 'customer_name':
+                        searchValue = card.querySelector('.customer-name').textContent.toLowerCase();
+                        break;
+                    case 'customer_id':
+                        searchValue = card.querySelector('.bill-details div:nth-child(4)').textContent.toLowerCase();
+                        break;
+                    case 'tree_id':
+                        searchValue = card.querySelector('.bill-details div:nth-child(5)').textContent.toLowerCase();
+                        break;
+                    case 'date':
+                        const dateElement = card.querySelector('.bill-date');
+                        if (dateElement) {
+                            searchValue = dateElement.getAttribute('data-date') || '';
+                        }
+                        break;
+                }
+                
+                // Show/hide card based on search match
+                if (currentField === 'date') {
+                    // Exact date match for date filter
+                    card.style.display = (searchValue === searchTerm) ? 'block' : 'none';
+                } else {
+                    // Contains match for text filters
+                    card.style.display = searchValue.includes(searchTerm) ? 'block' : 'none';
+                }
+            });
+        }
+
+        let currentShare = {};
+
+        function showShareOptions(button, customerName, totalAmount, amountPaid, balance, treeId, treeQuantity, treeMeasurement, phone, billId) {
+            // Store current bill details
+            currentShare = {
+                name: customerName,
+                totalAmount: totalAmount,
+                amountPaid: amountPaid,
+                balance: balance,
+                treeId: treeId,
+                treeQuantity: treeQuantity,
+                treeMeasurement: treeMeasurement,
+                phone: phone,
+                billId: billId
+            };
+
+            const popup = document.getElementById('sharePopup');
+            
+            // Get button position
+            const rect = button.getBoundingClientRect();
+            
+            // Position popup to the left of the share button
+            popup.style.display = 'block';
+            popup.style.top = `${rect.bottom + 5}px`;
+            popup.style.left = `${rect.left - popup.offsetWidth + rect.width}px`;
+
+            // Add overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            document.body.appendChild(overlay);
+            overlay.style.display = 'block';
+
+            // Close popup when clicking outside
+            overlay.onclick = function() {
+                popup.style.display = 'none';
+                overlay.remove();
+            };
+        }
+
+        function shareToWhatsApp() {
+            const message = formatBillMessage(
+                currentShare.name,
+                currentShare.totalAmount,
+                currentShare.amountPaid,
+                currentShare.balance,
+                currentShare.treeId,
+                currentShare.treeQuantity,
+                currentShare.treeMeasurement,
+                currentShare.billId
+            );
+            
+            let whatsappUrl;
+            if (currentShare.phone) {
+                const cleanPhone = currentShare.phone.replace(/\D/g, '');
+                whatsappUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
+            } else {
+                whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            }
+            
+            window.open(whatsappUrl, '_blank');
+            document.getElementById('sharePopup').style.display = 'none';
+            document.querySelector('.overlay').remove();
+        }
+
+        function shareToSMS() {
+            const message = formatBillMessage(
+                currentShare.name,
+                currentShare.totalAmount,
+                currentShare.amountPaid,
+                currentShare.balance,
+                currentShare.treeId,
+                currentShare.treeQuantity,
+                currentShare.treeMeasurement,
+                currentShare.billId
+            );
+            
+            let smsUrl;
+            if (currentShare.phone) {
+                const cleanPhone = currentShare.phone.replace(/\D/g, '');
+                smsUrl = `sms:${cleanPhone}?body=${encodeURIComponent(message)}`;
+            } else {
+                smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+            }
+            
+            window.location.href = smsUrl;
+            document.getElementById('sharePopup').style.display = 'none';
+            document.querySelector('.overlay').remove();
+        }
+
+        function formatBillMessage(customerName, totalAmount, amountPaid, balance, treeId, treeQuantity, treeMeasurement, billId) {
+            return `*Bill Details*
+-----------------
+Customer: ${customerName}
+Bill ID: ${billId}
+
+*Tree Details*
+Tree ID: ${treeId}
+Quantity: ${treeQuantity}
+Size: ${treeMeasurement}
+
+*Amount Details*
+Total Amount: ₹${totalAmount}
+Amount Paid: ₹${amountPaid}
+Balance: ₹${balance}
+-----------------
+Thank you for your business!`;
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+</body>
+</html>

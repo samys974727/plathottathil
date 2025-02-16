@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Saw Mill">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            margin-top: 20px;
+            margin-bottom: 80px;
+        }
+
+        .grid-button {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 12px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .grid-button:hover {
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+            transform: translateY(-2px);
+        }
+
+        .material-icons {
+            font-size: 48px;
+            margin-bottom: 8px;
+            color: #5f6368;
+        }
+
+        .button-text {
+            color: #202124;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .header {
+            text-align: center;
+            padding: 24px 16px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .header h1 {
+            color: #202124;
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .settings-button {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: #5f6368;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .settings-button:hover {
+            background-color: rgba(0,0,0,0.04);
+        }
+
+        .footer-banner {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            padding: 8px 24px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            max-width: 300px;
+        }
+
+        .powered-by {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .powered-by span {
+            color: #5f6368;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .company-names {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .company-name {
+            color: #1a73e8;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .company-name:hover {
+            opacity: 0.8;
+        }
+
+        .separator {
+            color: #5f6368;
+        }
+
+        .settings-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .settings-popup.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .settings-popup-content {
+            background-color: white;
+            width: 90%;
+            max-width: 400px;
+            margin: auto;
+            border-radius: 12px;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .settings-popup.open .settings-popup-content {
+            transform: scale(1);
+        }
+
+        .popup-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .settings-body {
+            padding: 8px 0;
+        }
+
+        .setting-item {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .setting-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .setting-item:hover {
+            background-color: rgba(0,0,0,0.04);
+        }
+
+        /* Switch styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #1a73e8;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .slider.round {
+            border-radius: 24px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .grid-button,
+        body.dark-mode .settings-popup-content {
+            background-color: #2d2d2d;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .material-icons,
+        body.dark-mode .button-text {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .setting-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 480px) {
+            .grid-container {
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .material-icons {
+                font-size: 36px;
+            }
+
+            .button-text {
+                font-size: 14px;
+            }
+
+            .footer-banner {
+                max-width: 260px;
+                padding: 6px 16px;
+            }
+
+            .company-name {
+                font-size: 12px;
+            }
+        }
+
+        .help-popup {
+            display: none;
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1001;
+            overflow: hidden;
+            min-width: 200px;
+        }
+
+        .help-option {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .help-option:hover {
+            background-color: rgba(0,0,0,0.04);
+        }
+
+        .help-option .material-icons {
+            font-size: 20px;
+            margin-bottom: 0;
+        }
+
+        /* Dark mode styles for help popup */
+        body.dark-mode .help-popup {
+            background-color: #2d2d2d;
+        }
+
+        body.dark-mode .help-option {
+            color: #e8eaed;
+        }
+
+        body.dark-mode .help-option:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .splash-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .splash-logo {
+            width: 200px;
+            height: auto;
+            animation: scaleIn 1s ease-out;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dark mode support for splash screen */
+        body.dark-mode .splash-screen {
+            background-color: #202124;
+        }
+
+        body.dark-mode .powered-by {
+            color: #9aa0a6;
+        }
+
+        body.dark-mode .company-name {
+            color: #8ab4f8;
+        }
+    </style>
+</head>
+<body>
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="splash-logo">
+            <div class="powered-by">
+                <span>Powered by</span>
+                <div class="company-names">
+                    <span class="company-name">Alpha Intelligence</span>
+                    <span class="separator">&</span>
+                    <span class="company-name">Adsbee</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="settingsPopup" class="settings-popup">
+        <div class="settings-popup-content">
+            <div class="popup-header">
+                <h2>Settings</h2>
+                <button class="close-button" onclick="closeSettings()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-item">
+                    <div class="setting-left">
+                        <span class="material-icons">dark_mode</span>
+                        <span>Dark Mode</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item" onclick="showHelpOptions(this)">
+                    <div class="setting-left">
+                        <span class="material-icons">help</span>
+                        <span>Help & Support</span>
+                    </div>
+                    <span class="material-icons">chevron_right</span>
+                </div>
+                <div class="setting-item" onclick="window.location.href='/analytics'">
+                    <div class="setting-left">
+                        <span class="material-icons">analytics</span>
+                        <span>Analytics</span>
+                    </div>
+                    <span class="material-icons">chevron_right</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="helpPopup" class="help-popup">
+        <div class="help-popup-content">
+            <div class="help-option" onclick="window.open('https://alphaintelligences.in/', '_blank')">
+                <span class="material-icons">language</span>
+                <span>Visit Website</span>
+            </div>
+            <div class="help-option" onclick="window.location.href='mailto:alphaintelligences01@gmail.com'">
+                <span class="material-icons">email</span>
+                <span>Email Support</span>
+            </div>
+        </div>
+    </div>
+    <div class="header">
+        <h1>Dashboard</h1>
+        <button class="settings-button" onclick="openSettings()">
+            <span class="material-icons">settings</span>
+        </button>
+    </div>
+    <div class="grid-container">
+        <button class="grid-button" onclick="window.location.href='/billing'">
+            <span class="material-icons">receipt</span>
+            <span class="button-text">Billing</span>
+        </button>
+        <button class="grid-button" onclick="window.location.href='/bills'">
+            <span class="material-icons">description</span>
+            <span class="button-text">Bills</span>
+        </button>
+        <button class="grid-button" onclick="window.location.href='/customers'">
+            <span class="material-icons">people</span>
+            <span class="button-text">Customers</span>
+        </button>
+        <button class="grid-button" onclick="window.location.href='/trees'">
+            <span class="material-icons">park</span>
+            <span class="button-text">Trees</span>
+        </button>
+    </div>
+    <div class="footer-banner">
+        <div class="powered-by">
+            <span>Powered by</span>
+            <div class="company-names">
+                <a href="https://alphaintelligences.in/" target="_blank" class="company-name">Alpha Intelligence</a>
+                <span class="separator">&</span>
+                <a href="https://adsbee.in/" target="_blank" class="company-name">Adsbee</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openSettings() {
+            document.getElementById('settingsPopup').classList.add('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPopup').classList.remove('open');
+        }
+
+        document.getElementById('settingsPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeToggle').checked = true;
+            }
+        });
+
+        function showHelpOptions(button) {
+            const helpPopup = document.getElementById('helpPopup');
+            const rect = button.getBoundingClientRect();
+            
+            helpPopup.style.display = 'block';
+            helpPopup.style.top = `${rect.bottom}px`;
+            helpPopup.style.left = `${rect.right - helpPopup.offsetWidth}px`;
+
+            // Close when clicking outside
+            document.addEventListener('click', function closeHelp(e) {
+                if (!helpPopup.contains(e.target) && e.target !== button) {
+                    helpPopup.style.display = 'none';
+                    document.removeEventListener('click', closeHelp);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const splashScreen = document.getElementById('splashScreen');
+            
+            // Show splash screen for 2 seconds
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                
+                // Remove splash screen from DOM after animation
+                setTimeout(() => {
+                    splashScreen.remove();
+                }, 500);
+            }, 2000);
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+</body>
+</html>
