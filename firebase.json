@@ -1,20 +1,20 @@
 {
-  "hosting": {
-    "public": "templates",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "function": "app"
-      }
-    ]
-  },
-  "functions": {
-    "source": ".",
-    "runtime": "python310"
+    "hosting": {
+      "public": "templates",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "function": "app"
+        }
+      ]
+    },
+    "functions": {
+      "source": ".",
+      "runtime": "python310"
+    }
   }
-} 
